@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from django.utils import timezone
+from rest_framework.permissions import AllowAny
 
 from .models import Task
 from .serializers import TaskSerializer, UserSerializer
@@ -16,6 +17,11 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
