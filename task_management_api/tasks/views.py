@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, filters
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Task, Comment
 from .serializers import TaskSerializer, CommentSerializer
 
@@ -11,7 +11,7 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+    permission_classes = [AllowAny]
     filter_backends = [filters.SearchFilter]
     search_fields = ["title", "description"]
 
