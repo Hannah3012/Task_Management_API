@@ -1,25 +1,34 @@
-from django.shortcuts import render
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters
 from rest_framework.permissions import IsAuthenticated
-from .models import Task
-from .serializers import TaskSerializer
+from .models import Task, Comment
+from .serializers import TaskSerializer, CommentSerializer
 
-class IsOwnerOrReadOnly(permissions.BasePermission):
+class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # read-only allowed to any request
         if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.owner == request.user
+        return obj.author == request.user
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["title", "description"]
 
     def get_queryset(self):
-        user = self.request.user
-        return Task.objects.filter(owner=user)
+        return Task.objects.filter(author=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+
+    def get_queryset(self):
+        return Comment.objects.filter(task__author=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
 
